@@ -66,7 +66,6 @@ def initialize_model():
     try:
         return ChatGoogleGenerativeAI(
             model="gemini-2.0-flash",
-            temperature=1.5,
             api_key=st.secrets["GOOGLE_API_KEY"]  # ✅ Use Streamlit secrets
         )
     except Exception as e:
