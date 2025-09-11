@@ -1,11 +1,6 @@
 import streamlit as st
 from langchain_google_genai import ChatGoogleGenerativeAI
-from dotenv import load_dotenv
 from typing import TypedDict, Annotated, Optional, Literal
-import os
-
-# Load environment variables
-load_dotenv()
 
 # Page configuration
 st.set_page_config(
@@ -69,7 +64,11 @@ class Review(TypedDict):
 def initialize_model():
     """Initialize the ChatGoogleGenerativeAI model"""
     try:
-        return ChatGoogleGenerativeAI(model="gemini-2.0-flash", temperature=1.5)
+        return ChatGoogleGenerativeAI(
+            model="gemini-2.0-flash",
+            temperature=1.5,
+            api_key=st.secrets["GOOGLE_API_KEY"]  # ✅ Use Streamlit secrets
+        )
     except Exception as e:
         st.error(f"Error initializing model: {e}")
         return None
@@ -112,12 +111,12 @@ def main():
         st.header("⚙️ Settings")
         
         # Check if API key is available
-        api_key_available = bool(os.getenv("GOOGLE_API_KEY"))
+        api_key_available = "GOOGLE_API_KEY" in st.secrets
         if api_key_available:
             st.success("✅ Google API Key loaded")
         else:
             st.error("❌ Google API Key not found")
-            st.info("Please add your GOOGLE_API_KEY to your .env file")
+            st.info("Please add your GOOGLE_API_KEY to Streamlit Secrets")
         
         st.markdown("---")
         st.markdown("### About")
@@ -141,7 +140,7 @@ However, it does get quite warm during intensive tasks and the webcam could be b
     
     # Main content
     if not api_key_available:
-        st.warning("⚠️ Please configure your Google API key in the .env file to use this app.")
+        st.warning("⚠️ Please configure your Google API key in Streamlit Secrets to use this app.")
         st.stop()
     
     # Initialize model
@@ -182,17 +181,17 @@ However, it does get quite warm during intensive tasks and the webcam could be b
             st.markdown("---")
             st.subheader("📊 Analysis Results")
             
-            # Sentiment - with safe access
+            # Sentiment
             st.markdown("### 🎭 Sentiment Analysis")
             sentiment = result.get('sentiment', 'neutral')
             display_sentiment(sentiment)
             
-            # Summary - with safe access
+            # Summary
             st.markdown("### 📋 Summary")
             summary = result.get('summary', 'No summary available')
             st.info(summary)
             
-            # Key Themes - with safe access
+            # Key Themes
             key_themes = result.get('key_themes', [])
             if key_themes:
                 st.markdown("### 🏷️ Key Themes")
@@ -201,7 +200,7 @@ However, it does get quite warm during intensive tasks and the webcam could be b
                     with themes_cols[i % 4]:
                         st.markdown(f"<div class='metric-card'>🏷️ {theme}</div>", unsafe_allow_html=True)
             
-            # Pros and Cons - with safe access
+            # Pros and Cons
             col1, col2 = st.columns(2)
             
             with col1:
